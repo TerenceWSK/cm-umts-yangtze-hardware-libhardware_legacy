@@ -123,6 +123,7 @@ static const char EXT_MODULE_PATH[] = WIFI_EXT_MODULE_PATH;
 #endif
 
 static const char IFACE_DIR[]           = "/data/system/wpa_supplicant";
+
 #ifdef WIFI_DRIVER_MODULE_PATH
 static const char DRIVER_MODULE_NAME[]  = WIFI_DRIVER_MODULE_NAME;
 static const char DRIVER_MODULE_TAG[]   = WIFI_DRIVER_MODULE_NAME " ";
@@ -955,6 +956,8 @@ int wifi_connect_on_socket_path(int index, const char *path)
         return -1;
     }
 
+    ALOGE("Try to open connection to supplicant on \"%s\", index=%d",path, index);
+
     ctrl_conn[index] = wpa_ctrl_open(path);
     if (ctrl_conn[index] == NULL) {
         ALOGE("Unable to open connection to supplicant on \"%s\": %s",
@@ -989,6 +992,7 @@ int wifi_connect_to_supplicant(const char *ifname)
 {
     char path[256];
 
+#if 0    
     if (is_primary_interface(ifname)) {
         if (access(IFACE_DIR, F_OK) == 0) {
             snprintf(path, sizeof(path), "%s/%s", IFACE_DIR, primary_iface);
@@ -1000,6 +1004,11 @@ int wifi_connect_to_supplicant(const char *ifname)
         sprintf(path, "%s/%s", CONTROL_IFACE_PATH, ifname);
         return wifi_connect_on_socket_path(SECONDARY, path);
     }
+#else
+    sprintf(path, "%s/%s", CONTROL_IFACE_PATH, ifname);
+    return wifi_connect_on_socket_path(is_primary_interface(ifname) ? PRIMARY : SECONDARY, path);
+#endif    
+
 }
 
 int wifi_send_command(int index, const char *cmd, char *reply, size_t *reply_len)
